@@ -1,7 +1,0 @@
-{
-  "/assessment/[id]/page": "app/assessment/[id]/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js",
-  "/profile/setup/page": "app/profile/setup/page.js",
-  "/register/page": "app/register/page.js"
-}

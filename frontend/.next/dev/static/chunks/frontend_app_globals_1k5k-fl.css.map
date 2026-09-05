@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 2, "column": 0}, "map": {"version":3,"sources":["file:///home/adityaverma/Desktop/projects/honorcode/frontend/app/globals.css"],"sourcesContent":["@import url(\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap\");\n\n* {\n  box-sizing: border-box;\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: \"Inter\", system-ui, sans-serif;\n  background: #f8fafc;\n  color: #0f172a;\n  -webkit-font-smoothing: antialiased;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: transparent;\n}\n\n::-webkit-scrollbar-thumb {\n  background: #cbd5e1;\n  border-radius: 99px;\n}\n\nbutton {\n  font-family: inherit;\n}\n\ninput,\nselect {\n  font-family: inherit;\n}\n"],"names":[],"mappings":"AAEA;;;;;;AAMA;;;;;;;AAOA;;;;;AAKA;;;;AAIA;;;;;AAKA"}}]
-}
