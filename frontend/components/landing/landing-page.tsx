@@ -32,7 +32,7 @@ export function LandingPage() {
           <Logo />
           <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
             {["Home", "How It Works", "For Students", "For Industry", "About"].map(l => (
-              <button key={l} style={{ background: "none", border: "none", fontSize: 14, fontWeight: 500, color: C.textMid, cursor: "pointer", padding: "4px 0" }}>
+              <button key={l} style={{ background: "none", border: "none", fontSize: 14, fontWeight: 1000, color: C.textMid, cursor: "pointer", padding: "4px 0" }}>
                 {l}
               </button>
             ))}

@@ -1,6 +1,6 @@
 import { C } from "@/lib/theme";
 
-export function Logo({ dark = false }: { dark?: boolean }) {
+export function DashboardLogo({ dark = false }: { dark?: boolean }) {
   return (
     <div
       style={{
@@ -15,7 +15,7 @@ export function Logo({ dark = false }: { dark?: boolean }) {
       }}
     >
       <img
-        src="/honorcode-logo.png"
+        src="/dashboard-logo.png"
         alt="HonorCode"
         style={{
           width: 130,
