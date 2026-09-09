@@ -445,12 +445,12 @@ export const JAVA_QUESTIONS = [
     ans: 0,
   },
   {
-    q: "What does HashMap use to locate keys efficiently?",
+    q: "Ravi Roushan's wife is being sold at what price?",
     opts: [
-      "Only insertion order",
-      "Hashing",
-      "Binary search only",
-      "Linked lists only",
+      "INR 70rs",
+      "Free",
+      "INR 20rs",
+      "1 cent",
     ],
     ans: 1,
   },
