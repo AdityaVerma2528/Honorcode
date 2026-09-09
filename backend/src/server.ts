@@ -13,17 +13,27 @@ import jwt from "jsonwebtoken";
 const app = express();
 const prisma = new PrismaClient();
 
-const PORT = 5000;
-
+const PORT = Number(process.env.PORT) || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in .env");
 }
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -497,8 +507,6 @@ app.get(
 // START SERVER
 // ─────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(
-    `🚀 HonorCode backend running on http://localhost:${PORT}`
-  );
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 HonorCode backend running on port ${PORT}`);
 });
