@@ -1,10 +1,10 @@
-export function Logo({ dark = false }: { dark?: boolean }) {
+export function Logo({ dark = true }: { dark?: boolean }) {
   return (
     <img
       src="/logo.png"
       alt="HonorCode"
       style={{
-        height: dark ? 40 : 36,
+        height: dark ? 200*0.8 : 180*0.8,
         width: "auto",
         maxWidth: "100%",
         objectFit: "contain",
