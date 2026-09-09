@@ -99,6 +99,7 @@ export function LandingPage() {
           </div>
           <div style={{ display: "flex", gap: 10 }}>
             <Button
+              onClick={() => (window.location.href = "/signin")}
               variant="ghost"
               size="sm"
               style={{ color: C.heroMuted, borderColor: "rgba(255,255,255,0.2)" }}

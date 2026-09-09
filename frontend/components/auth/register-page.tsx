@@ -14,26 +14,28 @@ import {
   User,
   Globe,
 } from "lucide-react";
+import axios from "axios";
 
 import { C } from "@/lib/theme";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Logo } from "@/components/landing/logo";
 
 type AccountType = "Developer" | "industry" | null;
 
-interface ButtonProps {
-  children: React.ReactNode;
-  size?: "sm" | "md" | "lg";
-  variant?: "primary" | "secondary";
-  style?: React.CSSProperties;
-  type?: "button" | "submit" | "reset";
+interface FormState {
+  name: string;
+  email: string;
+  password: string;
+  college: string;
+  course: string;
+  company: string;
+  website: string;
 }
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState<AccountType>(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
     password: "",
@@ -43,11 +45,144 @@ export default function RegisterPage() {
     website: "",
   });
 
-  const updateField = (field: string, value: string) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const updateField = (field: keyof FormState, value: string) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Clear messages when user starts editing again
+    setError("");
+    setSuccess("");
+  };
+
+  const handleAccountTypeChange = (type: AccountType) => {
+    setAccountType(type);
+    setError("");
+    setSuccess("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!accountType) {
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      // ───────────────────────────────────────
+      // DEVELOPER REGISTRATION
+      // ───────────────────────────────────────
+
+      if (accountType === "Developer") {
+        const nameParts = form.name.trim().split(/\s+/);
+
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(" ");
+
+        if (!firstName || !lastName) {
+          setError("Please enter your first and last name.");
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.post(
+          "http://localhost:5000/register",
+          {
+            email: form.email.trim().toLowerCase(),
+            password: form.password,
+            role: "DEVELOPER",
+
+            firstName,
+            lastName,
+
+            // These are supported by the backend profile
+            // and can be added to the form later.
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        console.log("Developer registration response:", response.data);
+
+        setSuccess(
+          "Developer account created successfully! You can now sign in."
+        );
+
+        // Reset form after successful registration
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          college: "",
+          course: "",
+          company: "",
+          website: "",
+        });
+      }
+
+      // ───────────────────────────────────────
+      // INDUSTRY REGISTRATION
+      // ───────────────────────────────────────
+
+      if (accountType === "industry") {
+        const response = await axios.post(
+          "http://localhost:5000/register",
+          {
+            email: form.email.trim().toLowerCase(),
+            password: form.password,
+            role: "INDUSTRY",
+
+            companyName: form.company.trim(),
+            website: form.website.trim() || undefined,
+            contactName: form.name.trim(),
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        console.log("Industry registration response:", response.data);
+
+        setSuccess(
+          "Industry account created successfully! You can now sign in."
+        );
+
+        // Reset form after successful registration
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          college: "",
+          course: "",
+          company: "",
+          website: "",
+        });
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ||
+          "Unable to create your account. Please try again.";
+
+        setError(message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,7 +257,12 @@ export default function RegisterPage() {
           {/* Back */}
           {accountType && (
             <button
-              onClick={() => setAccountType(null)}
+              type="button"
+              onClick={() => {
+                setAccountType(null);
+                setError("");
+                setSuccess("");
+              }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -205,7 +345,8 @@ export default function RegisterPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(280px, 1fr))",
                 gap: 20,
                 maxWidth: 720,
                 margin: "0 auto",
@@ -213,7 +354,8 @@ export default function RegisterPage() {
             >
               {/* Developer */}
               <button
-                onClick={() => setAccountType("Developer")}
+                type="button"
+                onClick={() => handleAccountTypeChange("Developer")}
                 style={{
                   textAlign: "left",
                   border: `1px solid ${C.border}`,
@@ -258,8 +400,8 @@ export default function RegisterPage() {
                     marginBottom: 20,
                   }}
                 >
-                  Assess your skills, track your growth and discover internships and
-                  career opportunities.
+                  Assess your skills, track your growth and discover
+                  internships and career opportunities.
                 </p>
 
                 <div
@@ -279,7 +421,8 @@ export default function RegisterPage() {
 
               {/* Industry */}
               <button
-                onClick={() => setAccountType("industry")}
+                type="button"
+                onClick={() => handleAccountTypeChange("industry")}
                 style={{
                   textAlign: "left",
                   border: `1px solid ${C.border}`,
@@ -324,8 +467,8 @@ export default function RegisterPage() {
                     marginBottom: 20,
                   }}
                 >
-                  Find skilled Developers, post opportunities and connect with emerging
-                  talent.
+                  Find skilled Developers, post opportunities and connect
+                  with emerging talent.
                 </p>
 
                 <div
@@ -354,21 +497,44 @@ export default function RegisterPage() {
                 padding: "32px",
               }}
             >
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
+              <form onSubmit={handleSubmit}>
+                {/* Error */}
+                {error && (
+                  <div
+                    style={{
+                      marginBottom: 20,
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      background: "#FEF2F2",
+                      border: "1px solid #FECACA",
+                      color: "#DC2626",
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
 
-                  console.log({
-                    accountType,
-                    ...form,
-                  });
+                {/* Success */}
+                {success && (
+                  <div
+                    style={{
+                      marginBottom: 20,
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      color: "#16A34A",
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {success}
+                  </div>
+                )}
 
-                  alert(
-                    "Demo registration successful! Backend integration will be added later.",
-                  );
-                }}
-              >
-                {/* Name */}
+                {/* Name / Contact */}
                 <div style={{ marginBottom: 20 }}>
                   <label
                     style={{
@@ -379,27 +545,24 @@ export default function RegisterPage() {
                       marginBottom: 8,
                     }}
                   >
-                    {accountType === "Developer" ? "Full Name" : "Contact Person"}
+                    {accountType === "Developer"
+                      ? "Full Name"
+                      : "Contact Person"}
                   </label>
 
                   <div style={{ position: "relative" }}>
-                    <User
-                      size={17}
-                      style={{
-                        position: "absolute",
-                        left: 14,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: C.muted,
-                      }}
-                    />
+                    <User size={17} style={iconStyle} />
 
                     <input
                       required
                       value={form.name}
-                      onChange={(e) => updateField("name", e.target.value)}
+                      onChange={(e) =>
+                        updateField("name", e.target.value)
+                      }
                       placeholder={
-                        accountType === "Developer" ? "Aditya Verma" : "Your full name"
+                        accountType === "Developer"
+                          ? "Aditya Verma"
+                          : "Your full name"
                       }
                       style={inputStyle}
                     />
@@ -409,7 +572,9 @@ export default function RegisterPage() {
                 {/* Email */}
                 <div style={{ marginBottom: 20 }}>
                   <label style={labelStyle}>
-                    {accountType === "Developer" ? "Email Address" : "Work Email"}
+                    {accountType === "Developer"
+                      ? "Email Address"
+                      : "Work Email"}
                   </label>
 
                   <div style={{ position: "relative" }}>
@@ -419,10 +584,12 @@ export default function RegisterPage() {
                       required
                       type="email"
                       value={form.email}
-                      onChange={(e) => updateField("email", e.target.value)}
+                      onChange={(e) =>
+                        updateField("email", e.target.value)
+                      }
                       placeholder={
                         accountType === "Developer"
-                          ? "Developer@example.com"
+                          ? "developer@example.com"
                           : "you@company.com"
                       }
                       style={inputStyle}
@@ -432,88 +599,101 @@ export default function RegisterPage() {
 
                 {/* Developer Fields */}
                 {accountType === "Developer" && (
-                  <>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                        gap: 16,
-                        marginBottom: 20,
-                      }}
-                    >
-                      <div>
-                        <label style={labelStyle}>College / University</label>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(220px, 1fr))",
+                      gap: 16,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <label style={labelStyle}>
+                        College / University
+                      </label>
 
-                        <input
-                          required
-                          value={form.college}
-                          onChange={(e) => updateField("college", e.target.value)}
-                          placeholder="Your college"
-                          style={plainInputStyle}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={labelStyle}>Course</label>
-
-                        <input
-                          required
-                          value={form.course}
-                          onChange={(e) => updateField("course", e.target.value)}
-                          placeholder="BCA, B.Tech, MCA..."
-                          style={plainInputStyle}
-                        />
-                      </div>
+                      <input
+                        required
+                        value={form.college}
+                        onChange={(e) =>
+                          updateField("college", e.target.value)
+                        }
+                        placeholder="Your college"
+                        style={plainInputStyle}
+                      />
                     </div>
-                  </>
+
+                    <div>
+                      <label style={labelStyle}>Course</label>
+
+                      <input
+                        required
+                        value={form.course}
+                        onChange={(e) =>
+                          updateField("course", e.target.value)
+                        }
+                        placeholder="BCA, B.Tech, MCA..."
+                        style={plainInputStyle}
+                      />
+                    </div>
+                  </div>
                 )}
 
                 {/* Industry Fields */}
                 {accountType === "industry" && (
-                  <div style={{ marginBottom: 20 }}>
-                    <label style={labelStyle}>Company Name</label>
+                  <>
+                    <div style={{ marginBottom: 20 }}>
+                      <label style={labelStyle}>
+                        Company Name
+                      </label>
 
-                    <div style={{ position: "relative" }}>
-                      <BriefcaseBusiness size={17} style={iconStyle} />
+                      <div style={{ position: "relative" }}>
+                        <BriefcaseBusiness
+                          size={17}
+                          style={iconStyle}
+                        />
 
-                      <input
-                        required
-                        value={form.company}
-                        onChange={(e) => updateField("company", e.target.value)}
-                        placeholder="Company name"
-                        style={inputStyle}
-                      />
+                        <input
+                          required
+                          value={form.company}
+                          onChange={(e) =>
+                            updateField("company", e.target.value)
+                          }
+                          placeholder="Company name"
+                          style={inputStyle}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Website for Industry */}
-                {accountType === "industry" && (
-                  <div style={{ marginBottom: 20 }}>
-                    <label style={labelStyle}>
-                      Company Website{" "}
-                      <span
-                        style={{
-                          fontWeight: 500,
-                          color: C.muted,
-                        }}
-                      >
-                        (Optional)
-                      </span>
-                    </label>
+                    <div style={{ marginBottom: 20 }}>
+                      <label style={labelStyle}>
+                        Company Website{" "}
+                        <span
+                          style={{
+                            fontWeight: 500,
+                            color: C.muted,
+                          }}
+                        >
+                          (Optional)
+                        </span>
+                      </label>
 
-                    <div style={{ position: "relative" }}>
-                      <Globe size={17} style={iconStyle} />
+                      <div style={{ position: "relative" }}>
+                        <Globe size={17} style={iconStyle} />
 
-                      <input
-                        type="url"
-                        value={form.website}
-                        onChange={(e) => updateField("website", e.target.value)}
-                        placeholder="https://company.com"
-                        style={inputStyle}
-                      />
+                        <input
+                          type="url"
+                          value={form.website}
+                          onChange={(e) =>
+                            updateField("website", e.target.value)
+                          }
+                          placeholder="https://company.com"
+                          style={inputStyle}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
                 {/* Password */}
@@ -528,7 +708,9 @@ export default function RegisterPage() {
                       type="password"
                       minLength={8}
                       value={form.password}
-                      onChange={(e) => updateField("password", e.target.value)}
+                      onChange={(e) =>
+                        updateField("password", e.target.value)
+                      }
                       placeholder="Minimum 8 characters"
                       style={inputStyle}
                     />
@@ -538,13 +720,23 @@ export default function RegisterPage() {
                 {/* Submit */}
                 <button
                   type="submit"
+                  disabled={loading}
                   style={{
                     width: "100%",
                     justifyContent: "center",
+                    opacity: loading ? 0.7 : 1,
+                    cursor: loading ? "not-allowed" : "pointer",
                   }}
                 >
-                  Create {accountType === "Developer" ? "Developer" : "Industry"} Account
-                  <ArrowRight size={17} />
+                  {loading
+                    ? "Creating Account..."
+                    : `Create ${
+                        accountType === "Developer"
+                          ? "Developer"
+                          : "Industry"
+                      } Account`}
+
+                  {!loading && <ArrowRight size={17} />}
                 </button>
 
                 <p
@@ -556,8 +748,8 @@ export default function RegisterPage() {
                     lineHeight: 1.6,
                   }}
                 >
-                  By creating an account, you agree to HonorCode&apos;s terms and privacy
-                  policy.
+                  By creating an account, you agree to HonorCode&apos;s
+                  terms and privacy policy.
                 </p>
               </form>
             </Card>

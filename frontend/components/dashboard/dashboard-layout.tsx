@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import axios from "axios";
+
 import { usePathname, useRouter } from "next/navigation";
+
 import {
   Bell,
   Briefcase,
@@ -17,11 +21,16 @@ import {
 } from "lucide-react";
 
 import { C } from "@/lib/theme";
-
 import { DashboardLogo } from "@/components/dashboard/dashboard-logo";
 
 type DashTab =
-  "home" | "skills" | "assessments" | "roadmap" | "jobs" | "achievements" | "profile";
+  | "home"
+  | "skills"
+  | "assessments"
+  | "roadmap"
+  | "jobs"
+  | "achievements"
+  | "profile";
 
 const SIDEBAR_ITEMS: {
   id: DashTab;
@@ -65,12 +74,105 @@ const SIDEBAR_ITEMS: {
   },
 ];
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+interface DeveloperProfile {
+  firstName: string;
+  lastName: string;
+  location?: string | null;
+}
+
+interface UserData {
+  id: string;
+  email: string;
+  role: "DEVELOPER" | "INDUSTRY" | "ADMIN";
+  status: "PENDING" | "ACTIVE" | "SUSPENDED";
+  emailVerified: boolean;
+  developerProfile?: DeveloperProfile | null;
+}
+
+interface MeResponse {
+  user: UserData;
+}
+
+export function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const pathname = usePathname();
+  const [user, setUser] = useState<UserData | null>(null);
 
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("honorcode_token");
+
+      if (!token) {
+        router.replace("/signin");
+        return;
+      }
+
+      try {
+        const response = await axios.get<MeResponse>(
+          "http://localhost:5000/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const authenticatedUser = response.data.user;
+
+        if (!authenticatedUser) {
+          throw new Error("User information was not returned.");
+        }
+
+        if (authenticatedUser.role !== "DEVELOPER") {
+          router.replace("/signin");
+          return;
+        }
+
+        setUser(authenticatedUser);
+      } catch (error) {
+        console.error("Failed to fetch authenticated user:", error);
+
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            localStorage.removeItem("honorcode_token");
+            localStorage.removeItem("honorcode_user");
+
+            router.replace("/signin");
+            return;
+          }
+        }
+
+        router.replace("/signin");
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, [router]);
+
+  const fullName = user?.developerProfile
+    ? `${user.developerProfile.firstName} ${user.developerProfile.lastName}`.trim()
+    : "Loading...";
+
+  const location =
+    user?.developerProfile?.location || "Developer";
+
+  const handleSignOut = () => {
+    localStorage.removeItem("honorcode_token");
+    localStorage.removeItem("honorcode_user");
+
+    router.replace("/");
+  };
 
   return (
     <div
@@ -115,7 +217,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           }}
         >
           {SIDEBAR_ITEMS.map((item) => {
-            const itemPath = item.id === "home" ? "/dashboard" : `/dashboard/${item.id}`;
+            const itemPath =
+              item.id === "home"
+                ? "/dashboard"
+                : `/dashboard/${item.id}`;
 
             const active = pathname === itemPath;
 
@@ -164,9 +269,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           }}
         >
           <button
-            onClick={() => {
-              window.location.href = "/";
-            }}
+            onClick={handleSignOut}
             style={{
               display: "flex",
               alignItems: "center",
@@ -183,6 +286,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             }}
           >
             <LogOut size={16} />
+
             Sign Out
           </button>
         </div>
@@ -313,7 +417,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 cursor: "pointer",
               }}
               onClick={() => {
-                window.location.href = "/dashboard/profile";
+                router.push("/dashboard/profile");
               }}
             >
               <div
@@ -338,7 +442,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     color: C.text,
                   }}
                 >
-                  Soumya Singh
+                  {loadingUser ? "Loading..." : fullName}
                 </div>
 
                 <div
@@ -347,7 +451,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     color: C.muted,
                   }}
                 >
-                  B.Tech CSE · Year 3
+                  {loadingUser ? "Loading..." : location}
                 </div>
               </div>
             </div>

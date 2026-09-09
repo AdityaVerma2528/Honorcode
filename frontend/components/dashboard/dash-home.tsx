@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   BarChart3,
   Briefcase,
@@ -12,15 +14,66 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
+
 import { C } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { IconBox } from "@/components/ui/icon-box";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatCard } from "@/components/dashboard/stat-card";
 
+interface DeveloperProfile {
+  firstName: string;
+  lastName: string;
+}
+
+interface UserData {
+  id: string;
+  email: string;
+  role: "DEVELOPER" | "INDUSTRY" | "ADMIN";
+  status: string;
+  emailVerified: boolean;
+  developerProfile?: DeveloperProfile | null;
+}
+
+interface MeResponse {
+  user: UserData;
+}
+
 export function DashHome() {
+  const [user, setUser] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("honorcode_token");
+
+        if (!token) {
+          return;
+        }
+
+        const response = await axios.get<MeResponse>(
+          "http://localhost:5000/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          },
+        );
+
+        setUser(response.data.user);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const firstName =
+    user?.developerProfile?.firstName || "there";
+
   const learningCards = [
     {
       title: "Data Structures & Algorithms",
@@ -101,17 +154,21 @@ export function DashHome() {
                 marginBottom: 4,
               }}
             >
-              Welcome back, Soumya 👋
+              Welcome back, {firstName} 👋
             </h1>
+
             <p style={{ fontSize: 14, color: C.muted }}>
               Monday, 25 August 2026 · 2 assessments pending
             </p>
           </div>
+
           <Button
             onClick={() => {
               window.location.href = "/assessment/java";
             }}
-            style={{ background: `linear-gradient(135deg, ${C.purple}, ${C.green})` }}
+            style={{
+              background: `linear-gradient(135deg, ${C.purple}, ${C.green})`,
+            }}
           >
             <Zap size={14} /> Start Assessment
           </Button>
@@ -135,6 +192,7 @@ export function DashHome() {
           color={C.purple}
           bg={C.purpleXL}
         />
+
         <StatCard
           icon={ClipboardList}
           label="Assessment Progress"
@@ -143,6 +201,7 @@ export function DashHome() {
           color={C.blue}
           bg={C.blueL}
         />
+
         <StatCard
           icon={Target}
           label="Profile Strength"
@@ -151,6 +210,7 @@ export function DashHome() {
           color={C.green}
           bg={C.greenL}
         />
+
         <StatCard
           icon={Briefcase}
           label="Matched Opportunities"
@@ -174,6 +234,7 @@ export function DashHome() {
           <h2 style={{ fontSize: 17, fontWeight: 700, color: C.text }}>
             Continue Learning
           </h2>
+
           <button
             onClick={() => {
               window.location.href = "/dashboard/roadmap";
@@ -193,6 +254,7 @@ export function DashHome() {
             View roadmap <ChevronRight size={14} />
           </button>
         </div>
+
         <div
           style={{
             display: "grid",
@@ -229,6 +291,7 @@ export function DashHome() {
                 >
                   <c.icon size={18} color={c.color} />
                 </div>
+
                 <div>
                   <div
                     style={{
@@ -240,11 +303,19 @@ export function DashHome() {
                   >
                     {c.topic}
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>
+
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: C.text,
+                    }}
+                  >
                     {c.title}
                   </div>
                 </div>
               </div>
+
               <div
                 style={{
                   display: "flex",
@@ -252,12 +323,27 @@ export function DashHome() {
                   marginBottom: 8,
                 }}
               >
-                <span style={{ fontSize: 12, color: C.muted }}>Progress</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: c.color }}>
+                <span style={{ fontSize: 12, color: C.muted }}>
+                  Progress
+                </span>
+
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: c.color,
+                  }}
+                >
                   {c.progress}%
                 </span>
               </div>
-              <ProgressBar value={c.progress} color={c.color} height={5} />
+
+              <ProgressBar
+                value={c.progress}
+                color={c.color}
+                height={5}
+              />
+
               <button
                 style={{
                   marginTop: 14,
@@ -290,9 +376,16 @@ export function DashHome() {
             marginBottom: 16,
           }}
         >
-          <h2 style={{ fontSize: 17, fontWeight: 700, color: C.text }}>
+          <h2
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              color: C.text,
+            }}
+          >
             Recommended for You
           </h2>
+
           <button
             onClick={() => {
               window.location.href = "/dashboard/jobs";
@@ -312,7 +405,14 @@ export function DashHome() {
             View all <ChevronRight size={14} />
           </button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
           {opportunities.map((o) => (
             <Card
               key={o.role}
@@ -344,22 +444,44 @@ export function DashHome() {
               >
                 {o.logo}
               </div>
+
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: C.text,
+                  }}
+                >
                   {o.role}
                 </div>
-                <div style={{ fontSize: 12, color: C.muted }}>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: C.muted,
+                  }}
+                >
                   {o.company} · {o.location} · {o.stipend}
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
                 <Badge color={C.green} bg={C.greenL}>
                   {o.match}% match
                 </Badge>
+
                 <Badge color={C.blue} bg={C.blueL}>
                   {o.type}
                 </Badge>
               </div>
+
               <ChevronRight size={16} color={C.muted} />
             </Card>
           ))}

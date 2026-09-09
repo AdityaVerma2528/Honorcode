@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -14,8 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User { 
-  id String @id @default(uuid())
-  name String 
-  email String @unique 
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  DEVELOPER
+  INDUSTRY
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+
+// ─────────────────────────────────────────────
+// USER
+// Authentication + Account
+// ─────────────────────────────────────────────
+
+model User {
+  id            String     @id @default(cuid())
+
+  email         String     @unique
+  password      String
+
+  role          UserRole
+  status        UserStatus @default(PENDING)
+
+  emailVerified Boolean    @default(false)
+
+  lastLoginAt   DateTime?
+
+  // Relationships
+  developerProfile DeveloperProfile?
+  industryProfile  IndustryProfile?
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([role])
+  @@index([status])
+}
+
+
+// ─────────────────────────────────────────────
+// DEVELOPER PROFILE
+// Developer-specific information
+// ─────────────────────────────────────────────
+
+model DeveloperProfile {
+  id          String   @id @default(cuid())
+
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName   String
+  lastName    String
+
+  phoneNumber String?
+  location    String?
+
+  bio         String?
+
+  githubUrl   String?
+  linkedinUrl String?
+  portfolioUrl String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+// ─────────────────────────────────────────────
+// INDUSTRY PROFILE
+// Industry/company-specific information
+// ─────────────────────────────────────────────
+
+model IndustryProfile {
+  id          String   @id @default(cuid())
+
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+
+  website     String?
+  description String?
+
+  industry    String?
+  location    String?
+
+  contactName String?
+  phoneNumber String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
