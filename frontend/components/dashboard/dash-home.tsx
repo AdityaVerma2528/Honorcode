@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 import {
   BarChart3,
   Briefcase,
@@ -53,7 +54,7 @@ export function DashHome() {
         }
 
         const response = await axios.get<MeResponse>(
-          "http://localhost:5000/me",
+          `${API_URL}/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

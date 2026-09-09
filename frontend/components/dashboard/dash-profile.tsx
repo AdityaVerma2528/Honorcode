@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 import { Check, User } from "lucide-react";
 
 import { C } from "@/lib/theme";
@@ -61,7 +62,7 @@ export function DashProfile() {
 
       try {
         const response = await axios.get<MeResponse>(
-          "http://localhost:5000/me",
+          `${API_URL}/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -8,6 +8,7 @@ import {
   BriefcaseBusiness,
 } from "lucide-react";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 import { C } from "@/lib/theme";
@@ -70,7 +71,7 @@ export function SigninPage() {
 
     try {
       const response = await axios.post<SigninResponse>(
-        "http://localhost:5000/signin",
+        `${API_URL}/signin`,
         {
           email: form.email.trim().toLowerCase(),
           password: form.password,

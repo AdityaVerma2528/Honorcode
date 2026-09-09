@@ -15,6 +15,7 @@ import {
   Globe,
 } from "lucide-react";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 import { C } from "@/lib/theme";
 import { Card } from "@/components/ui/card";
@@ -95,7 +96,7 @@ export default function RegisterPage() {
         }
 
         const response = await axios.post(
-          "http://localhost:5000/register",
+          `${API_URL}/register`,
           {
             email: form.email.trim().toLowerCase(),
             password: form.password,
@@ -136,7 +137,7 @@ export default function RegisterPage() {
 
       if (accountType === "industry") {
         const response = await axios.post(
-          "http://localhost:5000/register",
+          `${API_URL}/register`,
           {
             email: form.email.trim().toLowerCase(),
             password: form.password,

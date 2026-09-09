@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 import { usePathname, useRouter } from "next/navigation";
 
@@ -118,7 +119,7 @@ export function DashboardLayout({
 
       try {
         const response = await axios.get<MeResponse>(
-          "http://localhost:5000/me",
+          `${API_URL}/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
